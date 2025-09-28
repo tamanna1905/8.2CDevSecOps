@@ -35,12 +35,18 @@ pipeline {
     stage('SonarQube Analysis') {
       steps {
         withSonarQubeEnv('SonarCloud') {
-          sh '''sonar-scanner \
-  -Dsonar.projectKey=tamanna1905_8.2CDevSecOps \
-  -Dsonar.organization=tamanna1905 \
-  -Dsonar.sources=. \
-  -Dsonar.host.url=https://sonarcloud.io
-'''
+          script {
+            // MUST match the name you set in Manage Jenkins → Tools → SonarQube Scanner
+            def scannerHome = tool 'SonarScanner'
+            sh """
+              "${scannerHome}/bin/sonar-scanner" \
+                -Dsonar.projectKey=tamanna1905_8.2CDevSecOps \
+                -Dsonar.organization=tamanna1905 \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=https://sonarcloud.io \
+                -Dsonar.exclusions=node_modules/**
+            """
+          }
         }
       }
     }
@@ -52,3 +58,4 @@ pipeline {
     }
   }
 }
+
