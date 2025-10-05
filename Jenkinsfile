@@ -20,14 +20,12 @@ pipeline {
 
     stage('Run Tests') {
       steps {
-        // allow tests to fail without breaking the pipeline (OK for this assignment)
         sh 'npm test || true'
       }
     }
 
     stage('NPM Audit (Security Scan)') {
       steps {
-        // keep a machine-readable report as evidence
         sh 'npm audit --json > audit-report.json || true'
       }
     }
@@ -35,17 +33,19 @@ pipeline {
     stage('SonarQube Analysis') {
       steps {
         withSonarQubeEnv('SonarCloud') {
-          script {
-            // MUST match the name you set in Manage Jenkins → Tools → SonarQube Scanner
-            def scannerHome = tool 'SonarScanner'
-            sh """
-              "${scannerHome}/bin/sonar-scanner" \
-                -Dsonar.projectKey=tamanna1905_8.2CDevSecOps \
-                -Dsonar.organization=tamanna1905 \
-                -Dsonar.sources=. \
-                -Dsonar.host.url=https://sonarcloud.io \
-                -Dsonar.exclusions=node_modules/**
-            """
+          withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+            script {
+              def scannerHome = tool 'SonarScanner'
+              sh """
+                "${scannerHome}/bin/sonar-scanner" \
+                  -Dsonar.projectKey=tamanna1905_8.2CDevSecOps \
+                  -Dsonar.organization=tamanna1905 \
+                  -Dsonar.sources=. \
+                  -Dsonar.host.url=https://sonarcloud.io \
+                  -Dsonar.login=$SONAR_TOKEN \
+                  -Dsonar.exclusions=node_modules/**
+              """
+            }
           }
         }
       }
@@ -58,4 +58,5 @@ pipeline {
     }
   }
 }
+
 
